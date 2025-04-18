@@ -25,7 +25,7 @@ def main():
     }
 
     # Training dataset and dataloader
-    train_dir = "/kaggle/input/dataset/Training"
+    train_dir = "/kaggle/input/drdataset/dataset/Training"
     train_dataset = datasets.ImageFolder(root=train_dir, transform=data_transform["train"])
     train_num = len(train_dataset)
 
