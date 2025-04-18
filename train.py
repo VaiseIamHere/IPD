@@ -1,8 +1,10 @@
 import os
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 import sys
 import json
 
 import torch
+print("Device Count: ", torch.cuda.device_count())
 import torch.nn as nn
 from torchvision import transforms, datasets
 import torch.optim as optim
@@ -35,9 +37,9 @@ def main():
     with open('class_indices.json', 'w') as json_file:
         json.dump(idx_to_class, json_file, indent=4)
 
-    batch_size = 4
-    num_workers = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8])
-    print(f"Using {num_workers} dataloader workers.")
+    batch_size = 2
+    # num_workers = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8])
+    print(f"Using {0} dataloader workers.")
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
@@ -52,7 +54,8 @@ def main():
     # Model, loss, optimizer
     num_classes = len(class_to_idx)
     net = medmamba(num_classes=num_classes)
-    net.to(device)
+    net = nn.DataParallel(net)
+    net = net.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=1e-4)
 
@@ -68,6 +71,7 @@ def main():
         train_bar = tqdm(train_loader, file=sys.stdout)
         for images, labels in train_bar:
             optimizer.zero_grad()
+            torch.cuda.empty_cache()
             outputs = net(images.to(device))
             loss = criterion(outputs, labels.to(device))
             loss.backward()
