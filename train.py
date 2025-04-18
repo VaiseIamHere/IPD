@@ -35,7 +35,7 @@ def main():
     with open('class_indices.json', 'w') as json_file:
         json.dump(idx_to_class, json_file, indent=4)
 
-    batch_size = 32
+    batch_size = 4
     num_workers = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8])
     print(f"Using {num_workers} dataloader workers.")
 
@@ -43,7 +43,8 @@ def main():
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=num_workers
+        # num_workers=num_workers
+        num_workers=0
     )
 
     print(f"Loaded {train_num} training images.")
