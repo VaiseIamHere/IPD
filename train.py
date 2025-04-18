@@ -74,6 +74,9 @@ def main():
 
             running_loss += loss.item()
             train_bar.desc = f"Epoch [{epoch+1}/{epochs}] Loss: {loss.item():.3f}"
+            if device == 'cpu':
+                print("Training Started you can switch to GPU probably")
+                exit(0)
 
         avg_loss = running_loss / train_steps
         print(f"[Epoch {epoch+1}] Average Training Loss: {avg_loss:.3f}")
