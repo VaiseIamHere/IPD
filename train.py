@@ -38,7 +38,7 @@ def main():
     with open('class_indices.json', 'w') as json_file:
         json.dump(idx_to_class, json_file, indent=4)
 
-    batch_size = 8
+    batch_size = 32
     # num_workers = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8])
     print(f"Using {0} dataloader workers.")
 
