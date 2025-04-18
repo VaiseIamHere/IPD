@@ -55,7 +55,7 @@ def main():
     # Model, loss, optimizer
     num_classes = len(class_to_idx)
     net = medmamba(num_classes=num_classes)
-    net = nn.DataParallel(net)
+    # net = nn.DataParallel(net)
     net = net.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=1e-4)
