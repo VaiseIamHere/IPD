@@ -704,7 +704,7 @@ class VSSM(nn.Module):
         self.apply(self._init_weights)
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='gelu')
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
     def _init_weights(self, m: nn.Module):
         """
         out_proj.weight which is previously initilized in SS_Conv_SSM, would be cleared in nn.Linear
