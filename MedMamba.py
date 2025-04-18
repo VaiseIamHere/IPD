@@ -756,4 +756,4 @@ medmamba_b = VSSM(depths=[2, 2, 12, 2], dims=[128,256,512,1024], num_classes=5).
 
 data = torch.randn(1, 3, 224, 224).to(device)
 
-print(medmamba_t(data).shape)
+# print(medmamba_t(data).shape)
