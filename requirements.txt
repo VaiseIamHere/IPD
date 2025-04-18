@@ -1,0 +1,30 @@
+# PyTorch and related packages (using extra index URL)
+torch==1.13.0+cu117
+torchvision==0.14.0+cu117
+torchaudio==0.13.0+cu117
+--extra-index-url https://download.pytorch.org/whl/cu117
+
+# Standard Python packages
+packaging
+timm==0.4.12
+pytest
+chardet
+yacs
+termcolor
+submitit
+tensorboardX
+triton==2.0.0
+
+# Specific CUDA + PyTorch builds (note: these need to be available or built manually if not on PyPI)
+causal_conv1d==1.0.0
+mamba_ssm==1.0.1
+
+# Scientific/ML packages
+scikit-learn
+matplotlib
+thop
+h5py
+SimpleITK
+scikit-image
+medpy
+yacs
