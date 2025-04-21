@@ -14,7 +14,7 @@ from MedMamba import VSSM as medmamba  # import your model
 
 def main():
     # Select device
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using {device} device.")
 
     # Data transforms
@@ -47,7 +47,8 @@ def main():
         batch_size=batch_size,
         shuffle=True,
         # num_workers=num_workers
-        num_workers=0
+        num_workers=0,
+        pin_memory= True
     )
 
     print(f"Loaded {train_num} training images.")
