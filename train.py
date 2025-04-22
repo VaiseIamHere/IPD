@@ -38,9 +38,9 @@ def main():
     with open('class_indices.json', 'w') as json_file:
         json.dump(idx_to_class, json_file, indent=4)
 
-    batch_size = 64
-    num_workers = 2
-    print(f"Using {0} dataloader workers.")
+    batch_size = 32
+    num_workers = 4
+    print(f"Using {num_workers} dataloader workers.")
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
