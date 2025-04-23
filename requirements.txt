@@ -20,4 +20,3 @@ h5py
 SimpleITK
 scikit-image
 medpy
-mamba_ssm
