@@ -64,7 +64,7 @@ def main():
     # Training loop
     epochs = 2
     model_name = f"mamba_{sys.argv[1]}"
-    save_path = f'./kaggle/working/{model_name}.pth'
+    save_path = f'/kaggle/working/{model_name}.pth'
     train_steps = len(train_loader)
 
     metrics = []

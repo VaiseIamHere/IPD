@@ -15,7 +15,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 net = medmamba(num_classes=num_classes, activationOption=sys.argv[1])
 net = net.to(device)
 
-load_path = f"./kaggle/working/mamba_{sys.argv[1]}.pth"
+load_path = f"/kaggle/working/mamba_{sys.argv[1]}.pth"
 
 net.load_state_dict(torch.load(load_path))
 net.eval()
@@ -71,9 +71,9 @@ metrics = {
     "f1_score": f1
 }
 
-json_path = f"./kaggle/working/mamba_{sys.argv[1]}_test_metrices.json"
+json_path = f"/kaggle/working/mamba_{sys.argv[1]}_test_metrices.json"
 with open(json_path, 'w') as f:
     json.dump(metrics, f, indent=8)
 
-np.savetxt('./kaggle/working/confusion_matrix.csv', conf_matrix, delimiter=',', fmt='%d')
+np.savetxt('/kaggle/working/confusion_matrix.csv', conf_matrix, delimiter=',', fmt='%d')
 print("Confusion matrix saved as 'confusion_matrix.csv'")
