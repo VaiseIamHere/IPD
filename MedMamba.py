@@ -10,10 +10,10 @@ import torch.utils.checkpoint as checkpoint
 from einops import rearrange, repeat
 from timm.layers import DropPath, to_2tuple, trunc_normal_
 from customActivation import GELU, InputScaledGELU, OutputScaledGELU, MultiScaledGELU, PolynomialGELU
-try:
-    from mamba_ssm.ops.selective_scan_interface import selective_scan_fn, selective_scan_ref
-except:
-    pass
+# try:
+#     from mamba_ssm.ops.selective_scan_interface import selective_scan_fn, selective_scan_ref
+# except:
+#     print("Mamba Not Imported!!")
 
 # an alternative for mamba_ssm (in which causal_conv1d is needed)
 try:
