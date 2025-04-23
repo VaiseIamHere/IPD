@@ -10,10 +10,10 @@ import torch.utils.checkpoint as checkpoint
 from einops import rearrange, repeat
 from timm.layers import DropPath, to_2tuple, trunc_normal_
 from customActivation import GELU, InputScaledGELU, OutputScaledGELU, MultiScaledGELU, PolynomialGELU
-# try:
-#     from mamba_ssm.ops.selective_scan_interface import selective_scan_fn, selective_scan_ref
-# except:
-#     print("Mamba Not Imported!!")
+try:
+    from mamba_ssm.ops.selective_scan_interface import selective_scan_fn, selective_scan_ref
+except:
+    print("Mamba Not Imported!!")
 
 # an alternative for mamba_ssm (in which causal_conv1d is needed)
 try:
@@ -376,7 +376,7 @@ class SS2D(nn.Module):
         return D
 
     def forward_corev0(self, x: torch.Tensor):
-        self.selective_scan = selective_scan_fn_v1
+        self.selective_scan = selective_scan_fn
         
         B, C, H, W = x.shape
         L = H * W
@@ -416,7 +416,7 @@ class SS2D(nn.Module):
 
     # an alternative to forward_corev1
     def forward_corev1(self, x: torch.Tensor):
-        self.selective_scan = selective_scan_fn_v1
+        self.selective_scan = selective_scan_fn
 
         B, C, H, W = x.shape
         L = H * W
