@@ -77,7 +77,7 @@ class MultiScaledGELU(nn.Module):
         return outputActivation
 
 class PolynomialGELU(nn.Module):
-    """GELU with Output scaling."""
+    """GELU with parameterized appoximate parametric function."""
     def __init__(self) -> None:
         super().__init__()
         self.alpha = None

@@ -1,11 +1,12 @@
 import os
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+
 import sys
 import json
 import sys
-
 import torch
-print("Device Count: ", torch.cuda.device_count())
+print("Cuda Device Count: ", torch.cuda.device_count())
+
 import torch.nn as nn
 from torchvision import transforms, datasets
 import torch.optim as optim
@@ -36,7 +37,7 @@ def main():
     # Save class index mapping
     class_to_idx = train_dataset.class_to_idx
     idx_to_class = {v: k for k, v in class_to_idx.items()}
-    with open('class_indices.json', 'w') as json_file:
+    with open('/kaggle/working/class_indices.json', 'w') as json_file:
         json.dump(idx_to_class, json_file, indent=4)
 
     batch_size = int(sys.argv[2])
@@ -56,20 +57,22 @@ def main():
     # Model, loss, optimizer
     num_classes = len(class_to_idx)
     net = medmamba(num_classes=num_classes, activationOption=sys.argv[1])
-    # net = nn.DataParallel(net)
     net = net.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=1e-4)
 
     # Training loop
-    epochs = 100
-    model_name = 'mamba_vaibhav'
-    save_path = f'./{model_name}Net.pth'
+    epochs = 2
+    model_name = f"mamba_{sys.argv[1]}"
+    save_path = f'./kaggle/working/{model_name}.pth'
     train_steps = len(train_loader)
+
+    metrics = []
 
     for epoch in range(epochs):
         net.train()
         running_loss = 0.0
+        total_train, correct_train = 0, 0
         train_bar = tqdm(train_loader, file=sys.stdout)
         for images, labels in train_bar:
             optimizer.zero_grad()
@@ -80,14 +83,26 @@ def main():
             optimizer.step()
 
             running_loss += loss.item()
+            preds = outputs.argmax(dim=1)
+            correct_train += (preds == labels.to(device)).sum().item()
+            total_train += labels.size(0)
+
             train_bar.desc = f"Epoch [{epoch+1}/{epochs}] Loss: {loss.item():.3f}"
             if device == 'cpu':
                 print("Training Started you can switch to GPU probably")
                 exit(0)
 
+        train_acc = correct_train / total_train
         avg_loss = running_loss / train_steps
+        metrics.append({
+            "epoch": epoch+1,
+            "train_acc": train_acc,
+            "avg_loss": avg_loss
+        })
         print(f"[Epoch {epoch+1}] Average Training Loss: {avg_loss:.3f}")
 
+    with open("/kaggle/input/metrics.json", "w") as f:
+        json.dump(metrics, f, indent=8)
     # Save final model
     torch.save(net.state_dict(), save_path)
     print(f"Training complete. Model saved to {save_path}")

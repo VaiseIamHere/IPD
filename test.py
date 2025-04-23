@@ -5,16 +5,19 @@ import sys
 from tqdm import tqdm
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 import numpy as np
+import json
 
 from MedMamba import VSSM as medmamba
 
 num_classes = 5
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-net = medmamba(num_classes=num_classes)
+net = medmamba(num_classes=num_classes, activationOption=sys.argv[1])
 net = net.to(device)
 
-net.load_state_dict(torch.load('./mamba_vaibhavNet.pth'))
+load_path = f"./kaggle/working/mamba_{sys.argv[1]}.pth"
+
+net.load_state_dict(torch.load(load_path))
 net.eval()
 
 data_transform = transforms.Compose([
@@ -61,5 +64,16 @@ conf_matrix = confusion_matrix(all_labels, all_predictions)
 print("Confusion Matrix:")
 print(conf_matrix)
 
-np.savetxt('./confusion_matrix.csv', conf_matrix, delimiter=',', fmt='%d')
+metrics = {
+    "accuracy": accuracy,
+    "precision": precision,
+    "recall": recall,
+    "f1_score": f1
+}
+
+json_path = f"./kaggle/working/mamba_{sys.argv[1]}_test_metrices.json"
+with open(json_path, 'w') as f:
+    json.dump(metrics, f, indent=8)
+
+np.savetxt('./kaggle/working/confusion_matrix.csv', conf_matrix, delimiter=',', fmt='%d')
 print("Confusion matrix saved as 'confusion_matrix.csv'")
