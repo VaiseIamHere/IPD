@@ -376,7 +376,7 @@ class SS2D(nn.Module):
         return D
 
     def forward_corev0(self, x: torch.Tensor):
-        self.selective_scan = selective_scan_fn
+        self.selective_scan = selective_scan_fn_v1
         
         B, C, H, W = x.shape
         L = H * W
