@@ -92,6 +92,7 @@ class PolynomialGELU(nn.Module):
     def forward(self, data: torch.Tensor) -> torch.Tensor:
         if self.alpha is None:
             num_channels = data.size(1)
+            print("")
             alpha_init = torch.randn(num_channels, device=data.device)
             alpha_init = alpha_init / alpha_init.norm(p=2)  # L2 norm
 
@@ -111,10 +112,10 @@ class PolynomialGELU(nn.Module):
 
             self.k = (2 ** 0.5)/torch.pi
 
-            self.register_parameter("alpha", self.alpha)
-            self.register_parameter("beta", self.beta)
-            self.register_parameter("gamma", self.gamma)
-            self.register_parameter("delta", self.delta)
+            # self.register_parameter("alpha", self.alpha)
+            # self.register_parameter("beta", self.beta)
+            # self.register_parameter("gamma", self.gamma)
+            # self.register_parameter("delta", self.delta)
 
         data_cubed = torch.pow(data, 3)
         polynomial = self.alpha.view(1, -1, 1, 1) * 0.044715 * data_cubed + self.beta.view(1, -1, 1, 1) * data + self.gamma.view(1, -1, 1, 1)
