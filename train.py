@@ -62,7 +62,7 @@ def main():
     optimizer = optim.Adam(net.parameters(), lr=1e-4)
 
     # Training loop
-    epochs = 2
+    epochs = 1
     model_name = f"mamba_{sys.argv[1]}"
     save_path = f'/kaggle/working/{model_name}.pth'
     train_steps = len(train_loader)
@@ -101,7 +101,7 @@ def main():
         })
         print(f"[Epoch {epoch+1}] Average Training Loss: {avg_loss:.3f}")
 
-    with open("/kaggle/input/metrics.json", "w") as f:
+    with open("/kaggle/working/metrics.json", "w") as f:
         json.dump(metrics, f, indent=8)
     # Save final model
     torch.save(net.state_dict(), save_path)
