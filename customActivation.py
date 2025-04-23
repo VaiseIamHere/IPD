@@ -117,5 +117,5 @@ class PolynomialGELU(nn.Module):
         data_cubed = torch.pow(data, 3)
         polynomial = self.alpha.view(1, -1, 1, 1) * 0.044715 * data_cubed + self.beta.view(1, -1, 1, 1) * data + self.gamma.view(1, -1, 1, 1)
         product = self.k * polynomial
-        tanh = nn.Tanh(product)
+        tanh = torch.Tanh(product)
         return self.delta.view(1, -1, 1, 1) * 0.5 * tanh
