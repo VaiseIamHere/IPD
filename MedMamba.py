@@ -9,7 +9,7 @@ import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
 from einops import rearrange, repeat
 from timm.layers import DropPath, to_2tuple, trunc_normal_
-from customActivation import GELU
+from customActivation import GELU, InputScaledGELU, OutputScaledGELU, MultiScaledGELU, PolynomialGELU
 try:
     from mamba_ssm.ops.selective_scan_interface import selective_scan_fn, selective_scan_ref
 except:
@@ -23,7 +23,6 @@ except:
     pass
 
 DropPath.__repr__ = lambda self: f"timm.DropPath({self.drop_prob})"
-
 
 def flops_selective_scan_ref(B=1, L=256, D=768, N=16, with_D=True, with_Z=False, with_Group=True, with_complex=False):
     """
@@ -497,24 +496,90 @@ class SS_Conv_SSM(nn.Module):
         norm_layer: Callable[..., torch.nn.Module] = partial(nn.LayerNorm, eps=1e-6),
         attn_drop_rate: float = 0,
         d_state: int = 16,
+        activationOption='relu',
         **kwargs,
     ):
         super().__init__()
         self.ln_1 = norm_layer(hidden_dim//2)
         self.self_attention = SS2D(d_model=hidden_dim//2, dropout=attn_drop_rate, d_state=d_state, **kwargs)
         self.drop_path = DropPath(drop_path)
-
-        self.conv33conv33conv11 = nn.Sequential(
-            nn.BatchNorm2d(hidden_dim // 2),
-            nn.Conv2d(in_channels=hidden_dim//2,out_channels=hidden_dim//2,kernel_size=3,stride=1,padding=1),
-            nn.BatchNorm2d(hidden_dim//2),
-            GELU(),
-            nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(hidden_dim // 2),
-            GELU(),
-            nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=1, stride=1),
-            GELU()
-        )
+        self.activationOption=activationOption
+        
+        # Choosing between activations
+        if(self.activationOption == 'relu'):
+            self.conv33conv33conv11 = nn.Sequential(
+                nn.BatchNorm2d(hidden_dim // 2),
+                nn.Conv2d(in_channels=hidden_dim//2,out_channels=hidden_dim//2,kernel_size=3,stride=1,padding=1),
+                nn.BatchNorm2d(hidden_dim//2),
+                nn.ReLU(),
+                nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=3, stride=1, padding=1),
+                nn.BatchNorm2d(hidden_dim // 2),
+                nn.ReLU(),
+                nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=1, stride=1),
+                nn.ReLU()
+            )
+        elif(self.activationOption == 'gelu'):
+            self.conv33conv33conv11 = nn.Sequential(
+                nn.BatchNorm2d(hidden_dim // 2),
+                nn.Conv2d(in_channels=hidden_dim//2,out_channels=hidden_dim//2,kernel_size=3,stride=1,padding=1),
+                nn.BatchNorm2d(hidden_dim//2),
+                GELU(),
+                nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=3, stride=1, padding=1),
+                nn.BatchNorm2d(hidden_dim // 2),
+                GELU(),
+                nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=1, stride=1),
+                GELU()
+            )
+        elif(self.activationOption == 'inputscaledgelu'):
+            self.conv33conv33conv11 = nn.Sequential(
+                nn.BatchNorm2d(hidden_dim // 2),
+                nn.Conv2d(in_channels=hidden_dim//2,out_channels=hidden_dim//2,kernel_size=3,stride=1,padding=1),
+                nn.BatchNorm2d(hidden_dim//2),
+                InputScaledGELU(),
+                nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=3, stride=1, padding=1),
+                nn.BatchNorm2d(hidden_dim // 2),
+                InputScaledGELU(),
+                nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=1, stride=1),
+                InputScaledGELU()
+            )
+        elif(self.activationOption == 'outputscaledgelu'):
+            self.conv33conv33conv11 = nn.Sequential(
+                nn.BatchNorm2d(hidden_dim // 2),
+                nn.Conv2d(in_channels=hidden_dim//2,out_channels=hidden_dim//2,kernel_size=3,stride=1,padding=1),
+                nn.BatchNorm2d(hidden_dim//2),
+                OutputScaledGELU(),
+                nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=3, stride=1, padding=1),
+                nn.BatchNorm2d(hidden_dim // 2),
+                OutputScaledGELU(),
+                nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=1, stride=1),
+                OutputScaledGELU()
+            )
+        elif(self.activationOption == 'multiscaledgelu'):
+            self.conv33conv33conv11 = nn.Sequential(
+                nn.BatchNorm2d(hidden_dim // 2),
+                nn.Conv2d(in_channels=hidden_dim//2,out_channels=hidden_dim//2,kernel_size=3,stride=1,padding=1),
+                nn.BatchNorm2d(hidden_dim//2),
+                MultiScaledGELU(),
+                nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=3, stride=1, padding=1),
+                nn.BatchNorm2d(hidden_dim // 2),
+                MultiScaledGELU(),
+                nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=1, stride=1),
+                MultiScaledGELU()
+            )
+        elif(self.activationOption == 'polynomialgelu'):
+            self.conv33conv33conv11 = nn.Sequential(
+                nn.BatchNorm2d(hidden_dim // 2),
+                nn.Conv2d(in_channels=hidden_dim//2,out_channels=hidden_dim//2,kernel_size=3,stride=1,padding=1),
+                nn.BatchNorm2d(hidden_dim//2),
+                PolynomialGELU(),
+                nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=3, stride=1, padding=1),
+                nn.BatchNorm2d(hidden_dim // 2),
+                PolynomialGELU(),
+                nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=1, stride=1),
+                PolynomialGELU()
+            )    
+        else:
+            raise Exception("You have used a wrong Activation Option !!!!\nCheck for spelling mistakes\nAvailable Options:\n\trelu\n\tgelu\n\tinputscaledgelu\n\toutputscaledgelu\n\tmultiscaledgelu\n\tpolynomialgelu\n")
         # self.finalconv11 = nn.Conv2d(in_channels=hidden_dim, out_channels=hidden_dim, kernel_size=1, stride=1)
     def forward(self, input: torch.Tensor):
         input_left, input_right = input.chunk(2,dim=-1)
@@ -549,12 +614,13 @@ class VSSLayer(nn.Module):
         downsample=None, 
         use_checkpoint=False, 
         d_state=16,
+        activationOption='relu',
         **kwargs,
     ):
         super().__init__()
         self.dim = dim
         self.use_checkpoint = use_checkpoint
-
+        self.activationOption=activationOption
         self.blocks = nn.ModuleList([
             SS_Conv_SSM(
                 hidden_dim=dim,
@@ -562,6 +628,7 @@ class VSSLayer(nn.Module):
                 norm_layer=norm_layer,
                 attn_drop_rate=attn_drop,
                 d_state=d_state,
+                activationOption=self.activationOption
             )
             for i in range(depth)])
         
@@ -613,11 +680,13 @@ class VSSLayer_up(nn.Module):
         upsample=None, 
         use_checkpoint=False, 
         d_state=16,
+        activationOption='relu',
         **kwargs,
     ):
         super().__init__()
         self.dim = dim
         self.use_checkpoint = use_checkpoint
+        self.activationOption = activationOption
 
         self.blocks = nn.ModuleList([
             SS_Conv_SSM(
@@ -626,6 +695,7 @@ class VSSLayer_up(nn.Module):
                 norm_layer=norm_layer,
                 attn_drop_rate=attn_drop,
                 d_state=d_state,
+                activationOption=self.activationOption
             )
             for i in range(depth)])
         
@@ -653,7 +723,7 @@ class VSSLayer_up(nn.Module):
         return x
 
 class VSSM(nn.Module):
-    def __init__(self, patch_size=4, in_chans=3, num_classes=1000, depths=[2, 2, 4, 2], depths_decoder=[2, 9, 2, 2],
+    def __init__(self, activationOption='relu', patch_size=4, in_chans=3, num_classes=1000, depths=[2, 2, 4, 2], depths_decoder=[2, 9, 2, 2],
                  dims=[96,192,384,768], dims_decoder=[768, 384, 192, 96], d_state=16, drop_rate=0., attn_drop_rate=0., drop_path_rate=0.1,
                  norm_layer=nn.LayerNorm, patch_norm=True,
                  use_checkpoint=False, **kwargs):
@@ -665,6 +735,7 @@ class VSSM(nn.Module):
         self.embed_dim = dims[0]
         self.num_features = dims[-1]
         self.dims = dims
+        self.activationOption = activationOption
 
         self.patch_embed = PatchEmbed2D(patch_size=patch_size, in_chans=in_chans, embed_dim=self.embed_dim,
             norm_layer=norm_layer if patch_norm else None)
@@ -694,6 +765,7 @@ class VSSM(nn.Module):
                 norm_layer=norm_layer,
                 downsample=PatchMerging2D if (i_layer < self.num_layers - 1) else None,
                 use_checkpoint=use_checkpoint,
+                activationOption=self.activationOption
             )
             self.layers.append(layer)
 
@@ -747,13 +819,3 @@ class VSSM(nn.Module):
         x = torch.flatten(x,start_dim=1)
         x = self.head(x)
         return x
-
-# device = "cuda" if torch.cuda.is_available() else "cpu"
-
-# medmamba_t = VSSM(depths=[2, 2, 4, 2], dims=[96,192,384,768], num_classes=5).to(device)
-# medmamba_s = VSSM(depths=[2, 2, 8, 2], dims=[96,192,384,768], num_classes=5).to(device)
-# medmamba_b = VSSM(depths=[2, 2, 12, 2], dims=[128,256,512,1024], num_classes=5).to(device)
-
-# data = torch.randn(1, 3, 224, 224).to(device)
-
-# print(medmamba_t(data).shape)

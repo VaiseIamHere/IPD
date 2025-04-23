@@ -2,6 +2,7 @@ import os
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 import sys
 import json
+import sys
 
 import torch
 print("Device Count: ", torch.cuda.device_count())
@@ -38,8 +39,8 @@ def main():
     with open('class_indices.json', 'w') as json_file:
         json.dump(idx_to_class, json_file, indent=4)
 
-    batch_size = 32
-    num_workers = 4
+    batch_size = int(sys.argv[2])
+    num_workers = int(sys.argv[3])
     print(f"Using {num_workers} dataloader workers.")
 
     train_loader = torch.utils.data.DataLoader(
@@ -54,7 +55,7 @@ def main():
 
     # Model, loss, optimizer
     num_classes = len(class_to_idx)
-    net = medmamba(num_classes=num_classes)
+    net = medmamba(num_classes=num_classes, activationOption=sys.argv[1])
     # net = nn.DataParallel(net)
     net = net.to(device)
     criterion = nn.CrossEntropyLoss()
