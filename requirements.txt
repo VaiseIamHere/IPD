@@ -13,7 +13,6 @@ submitit
 tensorboardX
 triton
 causal_conv1d
-mamba_ssm
 scikit-learn
 matplotlib
 thop
@@ -21,3 +20,4 @@ h5py
 SimpleITK
 scikit-image
 medpy
+mamba_ssm
