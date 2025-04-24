@@ -12,40 +12,40 @@ from MedMamba import VSSM as medmamba
 
 num_classes = 5
 
-epochs = [5*i for i in range(1, 21)]
+checkpoints = [5*i for i in range(1, 21)]
 metrics = []
 
-print(epochs)
+print(checkpoints)
 
-for epoch in epochs:
+data_transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+])
+
+test_dir = "/kaggle/input/drdataset/dataset/Testing"
+test_dataset = datasets.ImageFolder(root=test_dir, transform=data_transform)
+test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers=0, pin_memory=True)
+
+test_num = len(test_dataset)
+print(f"Loaded {test_num} test images.")
+
+for checkpoint in checkpoints:
+    print(f"Checkpoint: {checkpoint}, ", end=" ")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     net = medmamba(num_classes=num_classes, activationOption=sys.argv[1])
     net = net.to(device)
 
-    load_path = f"/kaggle/working/checkpoints/mamba_{sys.argv[1]}_checkpoint{epoch}.pth"
+    load_path = f"/kaggle/working/checkpoints/mamba_{sys.argv[1]}_checkpoint{checkpoint}.pth"
 
     net.load_state_dict(torch.load(load_path, weights_only=True), strict=True)
     net.eval()
-
-    data_transform = transforms.Compose([
-        transforms.Resize((224, 224)),
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-    ])
-
-    test_dir = "/kaggle/input/drdataset/dataset/Testing"
-    test_dataset = datasets.ImageFolder(root=test_dir, transform=data_transform)
-    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers=0, pin_memory=True)
-
-    test_num = len(test_dataset)
-    print(f"Loaded {test_num} test images.")
 
     all_labels = []
     all_predictions = []
 
     with torch.no_grad():
-        test_bar = tqdm(test_loader, file=sys.stdout)
-        for images, labels in test_bar:
+        for images, labels in test_loader:
             images, labels = images.to(device), labels.to(device)
 
             outputs = net(images)
@@ -53,8 +53,6 @@ for epoch in epochs:
 
             all_labels.extend(labels.cpu().numpy())
             all_predictions.extend(predicted.cpu().numpy())
-
-            test_bar.desc = f"Test Progress: {100 * (len(all_predictions) / test_num):.2f}%"
 
     accuracy = 100 * np.sum(np.array(all_predictions) == np.array(all_labels)) / test_num
     print(f"Test Accuracy: {accuracy:.2f}%")
@@ -66,7 +64,7 @@ for epoch in epochs:
     conf_matrix = confusion_matrix(all_labels, all_predictions)
 
     metrics.append({
-        "epoch": epoch,
+        "checkpoint": checkpoint,
         "accuracy": accuracy,
         "precision": precision,
         "recall": recall,
