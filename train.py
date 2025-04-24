@@ -66,7 +66,8 @@ def main():
     epochs = 100
     model_name = f"mamba_{sys.argv[1]}"
     train_steps = len(train_loader)
-
+    file_path = f"/kaggle/working/{sys.argv[1]}_details.json"
+    
     if os.path.exists(file_path):
         with open(file_path, "r") as f:
             model_details = json.load(f)
@@ -103,7 +104,6 @@ def main():
         
         train_acc = correct_train / total_train
         avg_loss = running_loss / train_steps
-        file_path = f"/kaggle/working/{sys.argv[1]}_details.json"
 
         model_details["metrics"].append({
             "epoch": epoch + 1,
