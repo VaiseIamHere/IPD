@@ -134,7 +134,6 @@ def main():
             
         print(f"[Epoch {epoch+1}] Average Training Loss: {avg_loss:.3f}")
     
-    model_details["training_metrics"] = metrics
     print("**************************************")
     print(model_details)
     print("**************************************")
