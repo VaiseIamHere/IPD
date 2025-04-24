@@ -132,7 +132,7 @@ def main():
                 'loss': avg_loss
             }, checkpoint_path)
             
-        print(f"[Epoch {epoch+1}] Average Training Loss: {avg_loss:.3f}")
+        print(f"[Epoch {epoch+1}] Average Training Loss: {avg_loss:.3f}", flush=True)
     
     print("**************************************")
     print(model_details)
