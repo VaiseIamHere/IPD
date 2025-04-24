@@ -67,6 +67,22 @@ def main():
     model_name = f"mamba_{sys.argv[1]}"
     train_steps = len(train_loader)
 
+    if os.path.exists(file_path):
+        with open(file_path, "r") as f:
+            model_details = json.load(f)
+    else:
+        model_details = {
+            "model_name": model_name,
+            "training_params": {
+                "loss": "CrossEntropy",
+                "optimizer": "Adam",
+                "batch_size": batch_size,
+                "activationOption": sys.argv[1],
+                "num_workers": num_workers
+            },
+            "metrics": []
+        }
+
     for epoch in range(epochs):
         print(f"Epoch {epoch} started", flush=True)
         net.train()
@@ -89,30 +105,11 @@ def main():
         avg_loss = running_loss / train_steps
         file_path = f"/kaggle/working/{sys.argv[1]}_details.json"
 
-        if os.path.exists(file_path):
-            with open(file_path, "r") as f:
-                model_details = json.load(f)
-        else:
-            model_details = {
-                "model_name": model_name,
-                "training_params": {
-                    "loss": "CrossEntropy",
-                    "optimizer": "Adam",
-                    "batch_size": batch_size,
-                    "activationOption": sys.argv[1],
-                    "num_workers": num_workers
-                },
-                "metrics": []
-            }
-
         model_details["metrics"].append({
             "epoch": epoch + 1,
             "train_acc": train_acc,
             "avg_loss": avg_loss
         })
-
-        with open(file_path, "w") as f:
-            json.dump(model_details, f, indent=4)
 
         if (epoch + 1) % 5 == 0:
             checkpoint_path = f"/kaggle/working/checkpoints/{model_name}_checkpoint{epoch}.pth"
@@ -122,6 +119,8 @@ def main():
                 'optimizer_state_dict': optimizer.state_dict(),
                 'loss': avg_loss
             }, checkpoint_path)
+            with open(file_path, "w") as f:
+                json.dump(model_details, f, indent=4)
 
         print(f"[Epoch {epoch+1}] Average Training Loss: {avg_loss:.3f}", flush=True)
 
