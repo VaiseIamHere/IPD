@@ -17,7 +17,7 @@ net = net.to(device)
 
 load_path = f"/kaggle/working/mamba_{sys.argv[1]}.pth"
 
-net.load_state_dict(torch.load(load_path), strict=False)
+net.load_state_dict(torch.load(load_path), strict=True)
 net.eval()
 
 data_transform = transforms.Compose([
