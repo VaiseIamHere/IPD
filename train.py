@@ -14,12 +14,10 @@ from tqdm import tqdm
 
 from MedMamba import VSSM as medmamba
 
-os.makedirs("/kaggle/working/checkpoints", exist_ok=True)
-
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using {device} device.")
-
+    os.makedirs("/kaggle/working/checkpoints", exist_ok=True)
     print(sys.argv)
 
     data_transform = {
