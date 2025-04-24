@@ -14,6 +14,8 @@ from tqdm import tqdm
 
 from MedMamba import VSSM as medmamba
 
+os.makedirs("/kaggle/working/checkpoints", exist_ok=True)
+
 def main():
     # Select device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -80,9 +82,9 @@ def main():
             "batch_size": batch_size,
             "activationOption": sys.argv[1],
             "num_workers": num_workers
-        }
+        },
+        "metrics": []
     }
-    metrics = []
 
     for epoch in range(epochs):
         net.train()
@@ -103,19 +105,33 @@ def main():
             total_train += labels.size(0)
 
             train_bar.desc = f"Epoch [{epoch+1}/{epochs}] Loss: {loss.item():.3f}"
-
-        if (epoch + 1) % 25 == 0:
-            sp = save_path(epoch+1)
-            torch.save(net.state_dict(), sp)
-            print(f"Training Epoch: {epoch+1}. Model saved to {sp}")
         
         train_acc = correct_train / total_train
         avg_loss = running_loss / train_steps
-        metrics.append({
-            "epoch": epoch+1,
+        file_path = f"/kaggle/working/{sys.argv[1]}_details.json"
+
+        if os.path.exists(file_path):
+            with open(file_path, "r") as f:
+                model_details = json.load(f)
+
+        model_details["metrics"].append({
+            "epoch": epoch + 1,
             "train_acc": train_acc,
             "avg_loss": avg_loss
         })
+
+        with open(file_path, "w") as f:
+            json.dump(model_details, f, indent=4)
+
+        if (epoch + 1) % 5 == 0:
+            checkpoint_path = f"/kaggle/working/checkpoints/{model_name}_checkpoint{epoch}.pth"
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': net.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'loss': avg_loss
+            }, checkpoint_path)
+            
         print(f"[Epoch {epoch+1}] Average Training Loss: {avg_loss:.3f}")
     
     model_details["training_metrics"] = metrics
