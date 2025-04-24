@@ -6,74 +6,76 @@ from tqdm import tqdm
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 import numpy as np
 import json
+import gc
 
 from MedMamba import VSSM as medmamba
 
 num_classes = 5
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-net = medmamba(num_classes=num_classes, activationOption=sys.argv[1])
-net = net.to(device)
+epochs = [25, 50, 75, 100]
+metrics = []
 
-load_path = f"/kaggle/working/mamba_{sys.argv[1]}.pth"
+for epoch in epochs:
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    net = medmamba(num_classes=num_classes, activationOption=sys.argv[1])
+    net = net.to(device)
 
-net.load_state_dict(torch.load(load_path, weights_only=True), strict=True)
-net.eval()
+    load_path = f"/kaggle/working/mamba_{sys.argv[1]}_epoch{epoch}.pth"
 
-data_transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-])
+    net.load_state_dict(torch.load(load_path, weights_only=True), strict=True)
+    net.eval()
 
-test_dir = "/kaggle/input/drdataset/dataset/Testing"
-test_dataset = datasets.ImageFolder(root=test_dir, transform=data_transform)
-test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers=0, pin_memory=True)
+    data_transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
 
-test_num = len(test_dataset)
-print(f"Loaded {test_num} test images.")
+    test_dir = "/kaggle/input/drdataset/dataset/Testing"
+    test_dataset = datasets.ImageFolder(root=test_dir, transform=data_transform)
+    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers=0, pin_memory=True)
 
-all_labels = []
-all_predictions = []
+    test_num = len(test_dataset)
+    print(f"Loaded {test_num} test images.")
 
-with torch.no_grad():
-    test_bar = tqdm(test_loader, file=sys.stdout)
-    for images, labels in test_bar:
-        images, labels = images.to(device), labels.to(device)
+    all_labels = []
+    all_predictions = []
 
-        outputs = net(images)
-        _, predicted = torch.max(outputs, 1)
+    with torch.no_grad():
+        test_bar = tqdm(test_loader, file=sys.stdout)
+        for images, labels in test_bar:
+            images, labels = images.to(device), labels.to(device)
 
-        all_labels.extend(labels.cpu().numpy())
-        all_predictions.extend(predicted.cpu().numpy())
+            outputs = net(images)
+            _, predicted = torch.max(outputs, 1)
 
-        test_bar.desc = f"Test Progress: {100 * (len(all_predictions) / test_num):.2f}%"
+            all_labels.extend(labels.cpu().numpy())
+            all_predictions.extend(predicted.cpu().numpy())
 
-accuracy = 100 * np.sum(np.array(all_predictions) == np.array(all_labels)) / test_num
-print(f"Test Accuracy: {accuracy:.2f}%")
+            test_bar.desc = f"Test Progress: {100 * (len(all_predictions) / test_num):.2f}%"
 
-precision = precision_score(all_labels, all_predictions, average='weighted', zero_division=0)
-recall = recall_score(all_labels, all_predictions, average='weighted', zero_division=0)
-f1 = f1_score(all_labels, all_predictions, average='weighted', zero_division=0)
+    accuracy = 100 * np.sum(np.array(all_predictions) == np.array(all_labels)) / test_num
+    print(f"Test Accuracy: {accuracy:.2f}%")
 
-print(f"Precision: {precision:.2f}")
-print(f"Recall: {recall:.2f}")
-print(f"F1 Score: {f1:.2f}")
+    precision = precision_score(all_labels, all_predictions, average='weighted', zero_division=0)
+    recall = recall_score(all_labels, all_predictions, average='weighted', zero_division=0)
+    f1 = f1_score(all_labels, all_predictions, average='weighted', zero_division=0)
 
-conf_matrix = confusion_matrix(all_labels, all_predictions)
-print("Confusion Matrix:")
-print(conf_matrix)
+    conf_matrix = confusion_matrix(all_labels, all_predictions)
 
-metrics = {
-    "accuracy": accuracy,
-    "precision": precision,
-    "recall": recall,
-    "f1_score": f1
-}
+    metrics.append({
+        "epoch": epoch,
+        "accuracy": accuracy,
+        "precision": precision,
+        "recall": recall,
+        "f1_score": f1,
+        "conf_matrix": conf_matrix.tolist()
+    })
+
+    del net
+    torch.cuda.empty_cache()
+    gc.collect()
 
 json_path = f"/kaggle/working/mamba_{sys.argv[1]}_test_metrices.json"
 with open(json_path, 'w') as f:
     json.dump(metrics, f, indent=8)
-
-np.savetxt(f'/kaggle/working/mamba_{sys.argv[1]}_confusion_matrix.csv', conf_matrix, delimiter=',', fmt='%d')
-print(f"Confusion matrix saved as 'mamba_{sys.argv[1]}_confusion_matrix.csv'")

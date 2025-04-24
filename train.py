@@ -65,9 +65,11 @@ def main():
     # Training loop
     epochs = 100
     model_name = f"mamba_{sys.argv[1]}"
-    save_path = f'/kaggle/working/{model_name}.pth'
     train_steps = len(train_loader)
-
+    
+    def save_path(epoch):
+        return f'/kaggle/working/{model_name}_epoch{epoch}.pth'
+    
     model_details = {
         "model_name": model_name,
         "training_params": {
@@ -99,10 +101,12 @@ def main():
             total_train += labels.size(0)
 
             train_bar.desc = f"Epoch [{epoch+1}/{epochs}] Loss: {loss.item():.3f}"
-            if device == 'cpu':
-                print("Training Started you can switch to GPU probably")
-                exit(0)
 
+        if epoch % 25 == 0:
+            sp = save_path(epoch+1)
+            torch.save(net.state_dict(), sp)
+            print(f"Training Epoch: {epoch+1}. Model saved to {sp}")
+        
         train_acc = correct_train / total_train
         avg_loss = running_loss / train_steps
         metrics.append({
@@ -113,11 +117,11 @@ def main():
         print(f"[Epoch {epoch+1}] Average Training Loss: {avg_loss:.3f}")
     
     model_details["training_metrics"] = metrics
+    print("**************************************")
+    print(model_details)
+    print("**************************************")
     with open(f"/kaggle/working/{sys.argv[1]}_details.json", "w") as f:
         json.dump(model_details, f, indent=8)
-    # Save final model
-    torch.save(net.state_dict(), save_path)
-    print(f"Training complete. Model saved to {save_path}")
 
 if __name__ == '__main__':
     main()
