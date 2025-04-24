@@ -102,7 +102,7 @@ def main():
 
             train_bar.desc = f"Epoch [{epoch+1}/{epochs}] Loss: {loss.item():.3f}"
 
-        if epoch % 25 == 0:
+        if (epoch + 1) % 25 == 0:
             sp = save_path(epoch+1)
             torch.save(net.state_dict(), sp)
             print(f"Training Epoch: {epoch+1}. Model saved to {sp}")
