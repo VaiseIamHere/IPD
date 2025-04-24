@@ -70,6 +70,7 @@ def main():
     train_steps = len(train_loader)
 
     for epoch in range(epochs):
+        print(f"Epoch {epoch} started", flush=True)
         net.train()
         running_loss = 0.0
         total_train, correct_train = 0, 0
