@@ -111,7 +111,7 @@ def main():
             "avg_loss": avg_loss
         })
 
-        if (epoch + 1) % 5 == 0:
+        if (epoch + 1) % 10 == 0:
             checkpoint_path = f"/kaggle/working/checkpoints/{model_name}_checkpoint{epoch}.pth"
             torch.save({
                 'epoch': epoch,
