@@ -535,48 +535,48 @@ class SS_Conv_SSM(nn.Module):
                 nn.BatchNorm2d(hidden_dim // 2),
                 nn.Conv2d(in_channels=hidden_dim//2,out_channels=hidden_dim//2,kernel_size=3,stride=1,padding=1),
                 nn.BatchNorm2d(hidden_dim//2),
-                InputScaledGELU(),
+                InputScaledGELU(num_channels=hidden_dim // 2),
                 nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=3, stride=1, padding=1),
                 nn.BatchNorm2d(hidden_dim // 2),
-                InputScaledGELU(),
+                InputScaledGELU(num_channels=hidden_dim // 2),
                 nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=1, stride=1),
-                InputScaledGELU()
+                InputScaledGELU(num_channels=hidden_dim // 2)
             )
         elif(self.activationOption == 'outputscaledgelu'):
             self.conv33conv33conv11 = nn.Sequential(
                 nn.BatchNorm2d(hidden_dim // 2),
                 nn.Conv2d(in_channels=hidden_dim//2,out_channels=hidden_dim//2,kernel_size=3,stride=1,padding=1),
                 nn.BatchNorm2d(hidden_dim//2),
-                OutputScaledGELU(),
+                OutputScaledGELU(num_channels=hidden_dim // 2),
                 nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=3, stride=1, padding=1),
                 nn.BatchNorm2d(hidden_dim // 2),
-                OutputScaledGELU(),
+                OutputScaledGELU(num_channels=hidden_dim // 2),
                 nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=1, stride=1),
-                OutputScaledGELU()
+                OutputScaledGELU(num_channels=hidden_dim // 2)
             )
         elif(self.activationOption == 'multiscaledgelu'):
             self.conv33conv33conv11 = nn.Sequential(
                 nn.BatchNorm2d(hidden_dim // 2),
                 nn.Conv2d(in_channels=hidden_dim//2,out_channels=hidden_dim//2,kernel_size=3,stride=1,padding=1),
                 nn.BatchNorm2d(hidden_dim//2),
-                MultiScaledGELU(),
+                MultiScaledGELU(num_channels=hidden_dim // 2),
                 nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=3, stride=1, padding=1),
                 nn.BatchNorm2d(hidden_dim // 2),
-                MultiScaledGELU(),
+                MultiScaledGELU(num_channels=hidden_dim // 2),
                 nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=1, stride=1),
-                MultiScaledGELU()
+                MultiScaledGELU(num_channels=hidden_dim // 2)
             )
         elif(self.activationOption == 'polynomialgelu'):
             self.conv33conv33conv11 = nn.Sequential(
                 nn.BatchNorm2d(hidden_dim // 2),
                 nn.Conv2d(in_channels=hidden_dim//2,out_channels=hidden_dim//2,kernel_size=3,stride=1,padding=1),
                 nn.BatchNorm2d(hidden_dim//2),
-                PolynomialGELU(),
+                PolynomialGELU(num_channels=hidden_dim // 2),
                 nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=3, stride=1, padding=1),
                 nn.BatchNorm2d(hidden_dim // 2),
-                PolynomialGELU(),
+                PolynomialGELU(num_channels=hidden_dim // 2),
                 nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=1, stride=1),
-                PolynomialGELU()
+                PolynomialGELU(num_channels=hidden_dim // 2)
             )    
         else:
             raise Exception("You have used a wrong Activation Option !!!!\nCheck for spelling mistakes\nAvailable Options:\n\trelu\n\tgelu\n\tinputscaledgelu\n\toutputscaledgelu\n\tmultiscaledgelu\n\tpolynomialgelu\n")

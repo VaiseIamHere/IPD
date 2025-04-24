@@ -12,7 +12,7 @@ from torchvision import transforms, datasets
 import torch.optim as optim
 from tqdm import tqdm
 
-from MedMamba import VSSM as medmamba  # import your model
+from MedMamba import VSSM as medmamba
 
 def main():
     # Select device
@@ -42,6 +42,7 @@ def main():
 
     batch_size = int(sys.argv[2])
     num_workers = int(sys.argv[3])
+    print(f"Batch Size: ", batch_size)
     print(f"Using {num_workers} dataloader workers.")
 
     train_loader = torch.utils.data.DataLoader(
@@ -62,11 +63,21 @@ def main():
     optimizer = optim.Adam(net.parameters(), lr=1e-4)
 
     # Training loop
-    epochs = 1
+    epochs = 100
     model_name = f"mamba_{sys.argv[1]}"
     save_path = f'/kaggle/working/{model_name}.pth'
     train_steps = len(train_loader)
 
+    model_details = {
+        "model_name": model_name,
+        "training_params": {
+            "loss": "CrossEntropy",
+            "optimizer": "Adam",
+            "batch_size": batch_size,
+            "activationOption": sys.argv[1],
+            "num_workers": num_workers
+        }
+    }
     metrics = []
 
     for epoch in range(epochs):
@@ -100,9 +111,10 @@ def main():
             "avg_loss": avg_loss
         })
         print(f"[Epoch {epoch+1}] Average Training Loss: {avg_loss:.3f}")
-
-    with open("/kaggle/working/metrics.json", "w") as f:
-        json.dump(metrics, f, indent=8)
+    
+    model_details["training_metrics"] = metrics
+    with open(f"/kaggle/working/{sys.argv[1]}_details.json", "w") as f:
+        json.dump(model_details, f, indent=8)
     # Save final model
     torch.save(net.state_dict(), save_path)
     print(f"Training complete. Model saved to {save_path}")

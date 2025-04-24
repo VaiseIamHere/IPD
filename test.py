@@ -17,7 +17,7 @@ net = net.to(device)
 
 load_path = f"/kaggle/working/mamba_{sys.argv[1]}.pth"
 
-net.load_state_dict(torch.load(load_path), strict=True)
+net.load_state_dict(torch.load(load_path), strict=True, weights_only=True)
 net.eval()
 
 data_transform = transforms.Compose([
@@ -75,5 +75,5 @@ json_path = f"/kaggle/working/mamba_{sys.argv[1]}_test_metrices.json"
 with open(json_path, 'w') as f:
     json.dump(metrics, f, indent=8)
 
-np.savetxt('/kaggle/working/confusion_matrix.csv', conf_matrix, delimiter=',', fmt='%d')
-print("Confusion matrix saved as 'confusion_matrix.csv'")
+np.savetxt(f'/kaggle/working/mamba_{sys.argv[1]}_confusion_matrix.csv', conf_matrix, delimiter=',', fmt='%d')
+print(f"Confusion matrix saved as 'mamba_{sys.argv[1]}_confusion_matrix.csv'")
