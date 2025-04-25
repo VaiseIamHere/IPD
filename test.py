@@ -2,7 +2,6 @@ import torch
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader
 import sys
-from tqdm import tqdm
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 import numpy as np
 import json
@@ -12,7 +11,7 @@ from MedMamba import VSSM as medmamba
 
 num_classes = 5
 
-checkpoints = [5*i for i in range(1, 21)]
+checkpoints = [(10*i - 1) for i in range(1, 11)]
 metrics = []
 
 print(checkpoints)
@@ -30,13 +29,16 @@ test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers
 test_num = len(test_dataset)
 print(f"Loaded {test_num} test images.")
 
+notebook_name = sys.argv[1]
+activationOption = sys.argv[2]
+
 for checkpoint in checkpoints:
     print(f"Checkpoint: {checkpoint}, ", end=" ")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    net = medmamba(num_classes=num_classes, activationOption=sys.argv[1])
+    net = medmamba(num_classes=num_classes, activationOption=activationOption)
     net = net.to(device)
 
-    load_path = f"/kaggle/working/checkpoints/mamba_{sys.argv[1]}_checkpoint{checkpoint}.pth"
+    load_path = f"/kaggle/input/{notebook_name}/checkpoints/mamba_{activationOption}_checkpoint{checkpoint}.pth"
 
     net.load_state_dict(torch.load(load_path, weights_only=True), strict=True)
     net.eval()
@@ -76,6 +78,6 @@ for checkpoint in checkpoints:
     torch.cuda.empty_cache()
     gc.collect()
 
-json_path = f"/kaggle/working/mamba_{sys.argv[1]}_test_metrices.json"
+json_path = f"/kaggle/working/mamba_{activationOption}_test_metrices.json"
 with open(json_path, 'w') as f:
-    json.dump(metrics, f, indent=8)
+    json.dump(metrics, f, indent=4)
