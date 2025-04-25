@@ -33,7 +33,7 @@ notebook_name = sys.argv[1]
 activationOption = sys.argv[2]
 
 for checkpoint in checkpoints:
-    print(f"Checkpoint: {checkpoint}, ", end=" ")
+    print(f"Checkpoint: {checkpoint}, ", end=" ", flush=True)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     net = medmamba(num_classes=num_classes, activationOption=activationOption)
     net = net.to(device)
@@ -58,7 +58,7 @@ for checkpoint in checkpoints:
             all_predictions.extend(predicted.cpu().numpy())
 
     accuracy = 100 * np.sum(np.array(all_predictions) == np.array(all_labels)) / test_num
-    print(f"Test Accuracy: {accuracy:.2f}%")
+    print(f"Test Accuracy: {accuracy:.2f}%", flush=True)
 
     precision = precision_score(all_labels, all_predictions, average='weighted', zero_division=0)
     recall = recall_score(all_labels, all_predictions, average='weighted', zero_division=0)
