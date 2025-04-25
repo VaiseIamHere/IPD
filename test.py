@@ -40,7 +40,8 @@ for checkpoint in checkpoints:
 
     load_path = f"/kaggle/input/{notebook_name}/checkpoints/mamba_{activationOption}_checkpoint{checkpoint}.pth"
 
-    net.load_state_dict(torch.load(load_path, weights_only=True), strict=True)
+    f = torch.load(load_path, weights_only=True)
+    net.load_state_dict(f["model_state_dict"], strict=True)
     net.eval()
 
     all_labels = []
