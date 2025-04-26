@@ -56,9 +56,9 @@ for checkpoint in checkpoints:
 
     accuracy = 100 * np.sum(np.array(all_predictions) == np.array(all_labels)) / test_num
 
-    precision = precision_score(all_labels, all_predictions, average='weighted', zero_division=0)
-    recall = recall_score(all_labels, all_predictions, average='weighted', zero_division=0)
-    f1 = f1_score(all_labels, all_predictions, average='weighted', zero_division=0)
+    precision = precision_score(all_labels, all_predictions, average='macro', zero_division=0)
+    recall = recall_score(all_labels, all_predictions, average='macro', zero_division=0)
+    f1 = f1_score(all_labels, all_predictions, average='macro', zero_division=0)
 
     conf_matrix = confusion_matrix(all_labels, all_predictions)
 
