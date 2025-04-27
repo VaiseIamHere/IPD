@@ -8,7 +8,6 @@ import torch.nn as nn
 from torchvision import transforms, datasets
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from tqdm import tqdm
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from MedMamba import VSSM as medmamba
@@ -60,7 +59,7 @@ def main():
     net = medmamba(num_classes=num_classes, activationOption=sys.argv[1]).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(net.parameters(), lr=1e-4)
-    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.9, patience=5, verbose=True)
+    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.7, patience=3, verbose=True)
 
     # Save model details
     model_name = f"mamba_withaugmentation_{sys.argv[1]}"
@@ -95,7 +94,7 @@ def main():
         correct_train = 0
         total_train = 0
 
-        for images, labels in tqdm(train_loader, desc="Training"):
+        for images, labels in train_loader:
             optimizer.zero_grad()
             images, labels = images.to(device), labels.to(device)
             outputs = net(images)
@@ -117,7 +116,7 @@ def main():
         correct_val = 0
         total_val = 0
         with torch.no_grad():
-            for images, labels in tqdm(val_loader, desc="Validation"):
+            for images, labels in val_loader:
                 images, labels = images.to(device), labels.to(device)
                 outputs = net(images)
                 loss = criterion(outputs, labels)
