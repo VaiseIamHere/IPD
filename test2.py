@@ -21,7 +21,7 @@ data_transform = transforms.Compose([
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
-test_dir = "/kaggle/input/retinamnist/retinaMNIST/test"
+test_dir = "/kaggle/input/rmnist/retinaMNIST_a/test"
 test_dataset = datasets.ImageFolder(root=test_dir, transform=data_transform)
 test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers=0, pin_memory=True)
 

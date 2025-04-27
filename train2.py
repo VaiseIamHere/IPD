@@ -19,13 +19,6 @@ def main():
 
     data_transform = {
         "train": transforms.Compose([
-            transforms.RandomResizedCrop(224),
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.RandomVerticalFlip(p=0.5),
-            transforms.RandomRotation(degrees=30),
-            transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1),
-            transforms.RandomAffine(degrees=0, translate=(0.15, 0.15), scale=(0.8, 1.2)),
-            transforms.GaussianBlur(kernel_size=(5, 9), sigma=(0.1, 5)),
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ]),
@@ -34,8 +27,8 @@ def main():
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
     }
-    train_dir = "/kaggle/input/retinamnist/retinaMNIST/train"
-    val_dir = "/kaggle/input/retinamnist/retinaMNIST/val"
+    train_dir = "/kaggle/input/rmnist/retinaMNIST_a/train"
+    val_dir = "/kaggle/input/rmnist/retinaMNIST_a/val"
 
     # Datasets
     train_dataset = datasets.ImageFolder(root=train_dir, transform=data_transform["train"])
@@ -44,6 +37,8 @@ def main():
     train_num = len(train_dataset)
     val_num = len(val_dataset)
 
+    print("Training_data: ", train_num)
+    print("Validation data: ", val_num)
     # Save class index mapping
     class_to_idx = train_dataset.class_to_idx
 
@@ -52,14 +47,14 @@ def main():
     print(f"Batch Size: {batch_size}, Dataloader Workers: {num_workers}")
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
 
     # Model, loss, optimizer, scheduler
     num_classes = len(class_to_idx)
     net = medmamba(num_classes=num_classes, activationOption=sys.argv[1]).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(net.parameters(), lr=1e-4)
-    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.7, patience=3, verbose=True)
+    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)
 
     # Save model details
     model_name = f"mamba_withaugmentation_{sys.argv[1]}"
@@ -76,7 +71,12 @@ def main():
                 "optimizer": "AdamW",
                 "batch_size": batch_size,
                 "activationOption": sys.argv[1],
-                "num_workers": num_workers
+                "num_workers": num_workers,
+                "scheduler": {
+                    "name": "ReduceLROnPlateau",
+                    "factor": 0.5,
+                    "patience": 3
+                }
             },
             "metrics": []
         }
@@ -112,6 +112,7 @@ def main():
 
         # Validation
         net.eval()
+        print("Validation Started...")
         val_loss = 0.0
         correct_val = 0
         total_val = 0
