@@ -11,26 +11,29 @@ from MedMamba import VSSM as medmamba
 
 num_classes = 5
 
-checkpoints = [(10*i - 1) for i in range(1, 11)]
+checkpoints = [10*i for i in range(1, 11)]
 metrics = []
 
 print(checkpoints)
 
 data_transform = transforms.Compose([
-    transforms.Resize((224, 224)),
+    # transforms.Resize((224, 224)),
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
-test_dir = "/kaggle/input/drdataset/dataset/Testing"
+test_dir = "/kaggle/input/retinamnist/retinaMNIST/test"
 test_dataset = datasets.ImageFolder(root=test_dir, transform=data_transform)
 test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers=0, pin_memory=True)
 
 test_num = len(test_dataset)
 print(f"Loaded {test_num} test images.")
 
-notebook_name = sys.argv[1]
+addr = sys.argv[1]
 activationOption = sys.argv[2]
+
+def model_path(addr, activationOption, checkpoint):
+    return f"/kaggle/input/{addr}/checkpoints/mamba_{activationOption}_checkpoint{checkpoint}.pth"
 
 for checkpoint in checkpoints:
     print(f"Checkpoint: {checkpoint}, ", end=" ", flush=True)
@@ -38,7 +41,7 @@ for checkpoint in checkpoints:
     net = medmamba(num_classes=num_classes, activationOption=activationOption)
     net = net.to(device)
 
-    load_path = f"/kaggle/input/{notebook_name}/checkpoints/mamba_{activationOption}_checkpoint{checkpoint}.pth"
+    load_path = model_path(addr, activationOption, checkpoint)
 
     f = torch.load(load_path, weights_only=True)
     net.load_state_dict(f["model_state_dict"], strict=True)

@@ -577,7 +577,7 @@ class SS_Conv_SSM(nn.Module):
                 PolynomialGELU(num_channels=hidden_dim // 2),
                 nn.Conv2d(in_channels=hidden_dim // 2, out_channels=hidden_dim // 2, kernel_size=1, stride=1),
                 PolynomialGELU(num_channels=hidden_dim // 2)
-            )    
+            )
         else:
             raise Exception("You have used a wrong Activation Option !!!!\nCheck for spelling mistakes\nAvailable Options:\n\trelu\n\tgelu\n\tinputscaledgelu\n\toutputscaledgelu\n\tmultiscaledgelu\n\tpolynomialgelu\n")
         # self.finalconv11 = nn.Conv2d(in_channels=hidden_dim, out_channels=hidden_dim, kernel_size=1, stride=1)
