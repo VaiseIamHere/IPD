@@ -18,26 +18,25 @@ def main():
     print(f"Using {device} device.")
     os.makedirs("/kaggle/working/checkpoints", exist_ok=True)
 
-    # Transforms
     data_transform = {
         "train": transforms.Compose([
-            # transforms.Resize((224, 224)),
-            # transforms.RandomHorizontalFlip(),
-            # transforms.RandomRotation(10),
-            # transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+            transforms.RandomResizedCrop(224),
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomVerticalFlip(p=0.5),
+            transforms.RandomRotation(degrees=30),
+            transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1),
+            transforms.RandomAffine(degrees=0, translate=(0.15, 0.15), scale=(0.8, 1.2)),
+            transforms.GaussianBlur(kernel_size=(5, 9), sigma=(0.1, 5)),
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ]),
         "val": transforms.Compose([
-            # transforms.Resize((224, 224)),
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
     }
-
-    # Directories
     train_dir = "/kaggle/input/retinamnist/retinaMNIST/train"
-    val_dir = "/kaggle/input/retinamnist/retinaMNIST/val"  # <<< Add your validation folder here
+    val_dir = "/kaggle/input/retinamnist/retinaMNIST/val"
 
     # Datasets
     train_dataset = datasets.ImageFolder(root=train_dir, transform=data_transform["train"])
@@ -61,10 +60,10 @@ def main():
     net = medmamba(num_classes=num_classes, activationOption=sys.argv[1]).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(net.parameters(), lr=1e-4)
-    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)
+    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.9, patience=5, verbose=True)
 
     # Save model details
-    model_name = f"mamba_t_{sys.argv[1]}"
+    model_name = f"mamba_withaugmentation_{sys.argv[1]}"
     file_path = f"/kaggle/working/{model_name}_details.json"
 
     if os.path.exists(file_path):
